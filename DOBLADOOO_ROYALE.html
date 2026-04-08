@@ -4926,7 +4926,7 @@ function hideParachute() {
 // ============================================================
 
 function connectWS() {
-  const RAILWAY_URL = 'wss://doblado-royale-production.up.railway.app';
+  const RAILWAY_URL = 'wss://doblado-royale-production.up.railway.app/';
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const url = isLocal
     ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`

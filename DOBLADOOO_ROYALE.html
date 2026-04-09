@@ -815,7 +815,7 @@
 </div>
 
 <!-- Click to lock -->
-<div id="lock-msg">BATALLA ROYALE<small>HAZ CLIC PARA ENTRAR AL COMBATE</small></div>
+<div id="lock-msg" style="display:none">BATALLA ROYALE<small>HAZ CLIC PARA ENTRAR AL COMBATE</small></div>
 
 <!-- Top-left info -->
 <div id="top-left">
@@ -3866,7 +3866,7 @@ document.addEventListener('mousemove', e => {
 
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === document.body;
-  lockMsg.classList.toggle('hidden', locked);
+  lockMsg.style.display = 'none'; // siempre oculto
   if (!locked) {
     isBuildMode = false;
     _updateBuildHUD();

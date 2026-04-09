@@ -940,7 +940,7 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
 // ============================================================
 // A. TERRAIN MATH  (idéntica a versión anterior)
@@ -3866,7 +3866,7 @@ document.addEventListener('mousemove', e => {
 
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === document.body;
-  lockMsg.style.display = 'none'; // siempre oculto
+  lockMsg.style.display = 'none';
   if (!locked) {
     isBuildMode = false;
     _updateBuildHUD();

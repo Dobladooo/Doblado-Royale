@@ -940,7 +940,7 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
 // ============================================================
 // A. TERRAIN MATH  (idéntica a versión anterior)
@@ -4754,11 +4754,12 @@ function updateBattleBus(dt) {
       dropVelZ        = 0;
       hideParachute();
 
-      // Hacer visible al jugador
-      playerTorso.visible = true;
-      playerHead.visible  = true;
-      legLPivot.visible   = true;
-      legRPivot.visible   = true;
+      // Hacer visible al jugador (solo si no hay skin 3D activa)
+      const _hasSkin3D = !!_playerModel;
+      playerTorso.visible = !_hasSkin3D;
+      playerHead.visible  = !_hasSkin3D;
+      legLPivot.visible   = !_hasSkin3D;
+      legRPivot.visible   = !_hasSkin3D;
 
       // Eliminar bus y globo de la escena
       if (busGroup)     { scene.remove(busGroup);     busGroup     = null; }
@@ -4781,11 +4782,12 @@ function jumpFromBus(forced = false) {
   playerJumped = true;
   playerOnBus  = false;
 
-  // Hacer visible al jugador al saltar
-  playerTorso.visible = true;
-  playerHead.visible  = true;
-  legLPivot.visible   = true;
-  legRPivot.visible   = true;
+  // Hacer visible al jugador al saltar (solo si no hay skin 3D activa)
+  const _hasSkin3D2 = !!_playerModel;
+  playerTorso.visible = !_hasSkin3D2;
+  playerHead.visible  = !_hasSkin3D2;
+  legLPivot.visible   = !_hasSkin3D2;
+  legRPivot.visible   = !_hasSkin3D2;
 
   // Velocidad inicial al saltar (ligeramente hacia abajo)
   dropVelY = forced ? -5 : -2;

@@ -3997,23 +3997,21 @@ const _previewRenderers = {};
 function renderSkinToCanvas(skin, canvasEl, width, height) {
   if (!canvasEl) return;
   canvasEl.width = width; canvasEl.height = height;
-  // Crear renderer si no existe para este canvas
   let rData = canvasEl._skinRenderData;
   if (!rData) {
     const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
     const scene2 = new THREE.Scene();
-    const camera2 = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera2.position.set(0, 1.2, 3.5);
-    camera2.lookAt(0, 1.2, 0);
-    const amb = new THREE.AmbientLight(0xffffff, 1.2);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.5);
+    const camera2 = new THREE.PerspectiveCamera(40, width / height, 0.01, 1000);
+    const amb = new THREE.AmbientLight(0xffffff, 1.4);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.6);
     dir.position.set(2, 4, 3);
-    scene2.add(amb, dir);
+    const fill = new THREE.DirectionalLight(0xaaccff, 0.5);
+    fill.position.set(-2, 1, -2);
+    scene2.add(amb, dir, fill);
     rData = { renderer, scene2, camera2, model: null, mixer: null, clock: new THREE.Clock() };
     canvasEl._skinRenderData = rData;
-    // Animación
     function animLoop() {
       requestAnimationFrame(animLoop);
       if (rData.mixer) rData.mixer.update(rData.clock.getDelta());
@@ -4022,22 +4020,25 @@ function renderSkinToCanvas(skin, canvasEl, width, height) {
     }
     animLoop();
   }
-  // Quitar modelo anterior
   if (rData.model) { rData.scene2.remove(rData.model); rData.model = null; }
   if (rData.mixer) { rData.mixer.stopAllAction(); rData.mixer = null; }
-  // Cargar nuevo modelo
   loadSkinGLB(skin.glb, (gltf) => {
     const model = gltf.scene.clone(true);
-    model.scale.setScalar(skin.scale * 85);
-    model.position.set(0, 0, 0);
-    // Centrar modelo
+    rData.scene2.add(model);
+    // Calcular bounding box real del modelo sin escala artificial
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    model.position.y = -box.min.y + (size.y * 0.0);
+    // Centrar modelo en origen
     model.position.x = -center.x;
+    model.position.y = -box.min.y;
     model.position.z = -center.z;
-    rData.scene2.add(model);
+    // Colocar cámara para que encuadre bien el modelo completo
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fovRad = (rData.camera2.fov * Math.PI) / 180;
+    const camDist = (maxDim / 2) / Math.tan(fovRad / 2) * 1.6;
+    rData.camera2.position.set(0, size.y * 0.5, camDist);
+    rData.camera2.lookAt(0, size.y * 0.5, 0);
     rData.model = model;
     if (gltf.animations.length) {
       rData.mixer = new THREE.AnimationMixer(model);

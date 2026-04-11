@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { background: #111; color: white; font-family: sans-serif; display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; }
+.card { background: #222; border-radius: 8px; padding: 10px; text-align: center; }
+canvas { display: block; }
+</style>
+</head>
+<body>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
+const SKINS = [
+  { name:'Iron Man',       glb:'ironman.glb' },
+  { name:'Spider-Gwen',    glb:'spider_gwen.glb' },
+  { name:'Spider-Man',     glb:'spiderman.glb' },
+  { name:'Tung Tung',      glb:'tung.glb' },
+  { name:'Jonesy',         glb:'jonesy.glb' },
+  { name:'Peely',          glb:'peely.glb' },
+  { name:'Spider-Man FF',  glb:'spiderman_ff.glb' },
+];
+
+const loader = new GLTFLoader();
+
+SKINS.forEach(skin => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const canvas = document.createElement('canvas');
+  canvas.width = 200; canvas.height = 350;
+  const label = document.createElement('div');
+  label.textContent = skin.name;
+  card.appendChild(canvas);
+  card.appendChild(label);
+  document.body.appendChild(card);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(200, 350);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0xffffff, 2));
+  const dir = new THREE.DirectionalLight(0xffffff, 2);
+  dir.position.set(1, 2, 2);
+  scene.add(dir);
+
+  // Cámara fija apuntando al frente
+  const camera = new THREE.PerspectiveCamera(40, 200/350, 0.001, 100000);
+
+  loader.load('/models/' + skin.glb, (gltf) => {
+    const model = gltf.scene;
+    scene.add(model);
+
+    // Bbox real
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    console.log(skin.name, '-> center:', JSON.stringify(center), 'size:', JSON.stringify(size));
+
+    // Mover modelo para que su centro esté en el origen
+    model.position.sub(center);
+    // Subir para que los pies estén en y=0
+    model.position.y += size.y / 2;
+
+    // Recalcular bbox tras mover
+    const box2 = new THREE.Box3().setFromObject(model);
+    const size2 = box2.getSize(new THREE.Vector3());
+
+    // Cámara mirando al centro del personaje (mitad de la altura)
+    const fov = camera.fov * Math.PI / 180;
+    // Usar la dimensión más grande para calcular distancia
+    const maxDim = Math.max(size2.x, size2.y, size2.z);
+    const dist = (maxDim / 2) / Math.tan(fov / 2) * 1.8;
+    const lookAtY = size2.y * 0.5; // mirar al centro vertical
+    camera.position.set(0, lookAtY, dist);
+    camera.lookAt(0, lookAtY, 0);
+
+    const mixer = gltf.animations.length ? new THREE.AnimationMixer(model) : null;
+    if (mixer) mixer.clipAction(gltf.animations[0]).play();
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (mixer) mixer.update(clock.getDelta());
+      model.rotation.y += 0.008;
+      renderer.render(scene, camera);
+    }
+    animate();
+  }, undefined, (err) => {
+    label.textContent = skin.name + ' ERROR';
+    console.error(err);
+  });
+});
+</script>
+</body>
+</html>
